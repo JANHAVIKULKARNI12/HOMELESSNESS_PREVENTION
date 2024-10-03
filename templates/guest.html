@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Login as Guest</h2>
+    <form action="/submit_guest" method="post">
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required><br>
+
+        <label for="emergency">Is this an emergency? (yes/no):</label>
+        <input type="text" id="emergency" name="emergency" required><br>
+
+        <label for="description">Short Description:</label>
+        <textarea id="description" name="description" rows="4" cols="50"></textarea><br>
+
+        <label for="photo">Photo (optional):</label>
+        <input type="file" id="photo" name="photo"><br>
+
+        <button type="submit">Submit Request</button>
+    </form>
+{% endblock %}

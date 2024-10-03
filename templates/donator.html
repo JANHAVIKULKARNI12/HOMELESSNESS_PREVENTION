@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Login as Donator</h2>
+    <form action="/submit_donator" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="govt_id">Government ID:</label>
+        <input type="text" id="govt_id" name="govt_id" required><br>
+
+        <label for="email">Email ID:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required><br>
+
+        <label for="photos">Photos:</label>
+        <input type="file" id="photos" name="photos" multiple><br>
+
+        <label for="duration">Duration Available (months):</label>
+        <input type="number" id="duration" name="duration" required><br>
+
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}
