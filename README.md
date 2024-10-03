@@ -1,2 +1,5 @@
 # HOMELESSNESS_PREVENTION
+
+-add the project description! 
+
 HOMELESSNESS PREVENTION
