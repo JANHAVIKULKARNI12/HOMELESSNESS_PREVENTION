@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Admin Dashboard</h2>
+    <div class="admin-options">
+        <a href="{{ url_for('manage_individual') }}">Manage Individual Users</a><br>
+        <a href="{{ url_for('verify_requests') }}">Verify Requests</a><br>
+        <a href="{{ url_for('emergency_requests') }}">View Emergency Requests</a><br>
+        <a href="{{ url_for('manage_shelters') }}">Manage Shelters</a><br>
+    </div>
+{% endblock %}
