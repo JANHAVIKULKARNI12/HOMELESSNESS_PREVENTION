@@ -1,0 +1,32 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+
+# Initialize the app
+app = Flask(__name__)
+
+# Configure the app
+app.config['SECRET_KEY'] = 'your_secret_key'  # Use a secure key for production
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yourdatabase.db'  # Example: SQLite database
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize extensions
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'individual_login'  # Redirect to individual login if not logged in
+
+# Import routes
+from models import User  # Import your User model here
+from . import routes  # Ensure you import routes at the end to avoid circular imports
+
+# Optional: Load user loader for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Optional: Error handling
+@app.errorhandler(404)
+def not_found(error):
+    return "Page not found", 404
+
+# Optional: Add other app setup if needed
