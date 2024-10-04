@@ -1,4 +1,4 @@
-                                                          Homeless Prevention Web Application
+                                                 Homeless Prevention Web Application
                                                                         
 Overview : 
 The Homeless Prevention Web Application is a multi-user platform designed to assist homeless individuals by connecting them with donors and volunteers, while also providing admin
