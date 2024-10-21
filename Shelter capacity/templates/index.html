@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelter Capacity Form</title>
+</head>
+<body>
+    <h2>Shelter Capacity Form</h2>
+    <form action="/submit" method="POST">
+        <label for="shelterName">Shelter Name:</label>
+        <input type="text" id="shelterName" name="shelterName" required><br><br>
+
+        <label for="currentCapacity">Current Capacity:</label>
+        <input type="number" id="currentCapacity" name="currentCapacity" required><br><br>
+
+        <label for="maxCapacity">Max Capacity:</label>
+        <input type="number" id="maxCapacity" name="maxCapacity" required><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
