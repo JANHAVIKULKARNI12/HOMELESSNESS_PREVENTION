@@ -6,7 +6,12 @@ import joblib
 
 app = Flask(__name__)
 app.secret_key = 'd2b1e5a836ef4259b707587f5a2b1ff23f38e7bb34b25e7b67c5a758e345e3b5'  # Replace with a secure key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+# Configure MySQL Database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless_prevention'
+# Replace 'your_username' and 'your_password' with your actual MySQL username and password
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Optional: To suppress a warning
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -17,7 +22,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 # Load homeless model
-model = joblib.load('homeless_model.pkl')
+model = joblib.load(r'C:\Users\Dell\Desktop\HOMELESSNESS_PREVENTION\final model after authentication\homeless_model.pkl')
 
 # User model
 class User(db.Model):
@@ -25,6 +30,12 @@ class User(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     is_verified = db.Column(db.Boolean, default=False)
+
+# Route to view all users
+@app.route('/users', methods=['GET'])
+def users():
+    all_users = User.query.all()  # Query to fetch all users
+    return render_template('users.html', users=all_users)
 
 # Route for the root URL to redirect to the login page
 @app.route('/')
@@ -143,5 +154,5 @@ def prediction():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Create tables if they don't exist
     app.run(debug=True)
