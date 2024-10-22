@@ -9,9 +9,9 @@ app.secret_key = 'd2b1e5a836ef4259b707587f5a2b1ff23f38e7bb34b25e7b67c5a758e345e3
 
 # Configure MySQL Database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless_prevention'
-# Replace 'your_username' and 'your_password' with your actual MySQL username and password
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Optional: To suppress a warning
 
+# Configure Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -101,14 +101,18 @@ def verify():
         entered_otp = request.form['otp']
         email = session.get('email')
         otp = session.get('otp')
+        
+        print(f"Entered OTP: {entered_otp}, Expected OTP: {otp}")  # Debugging line
+        
         if otp and int(entered_otp) == otp:
             # Mark user as verified
             user = User.query.filter_by(email=email).first()
             user.is_verified = True
             db.session.commit()
             
+            print(f"User {email} verified")  # Debugging line
             flash('Email verified successfully! You can now log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('login'))  # Redirect to the login page after verification
         else:
             flash('Invalid OTP. Please try again.', 'danger')
             return redirect(url_for('verify'))
