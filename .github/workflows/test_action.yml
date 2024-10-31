@@ -19,8 +19,27 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           ML_API_KEY: ${{ secrets.ML_API_KEY }}
           EMAIL_API_KEY: ${{ secrets.EMAIL_API_KEY }}
-          ADMIN_SECRET_KEY: ${{ secrets.ADMIN_SECRET_KEY }}
+          ADMIN_SECRET_KEY: ${{ vars.ADMIN_SECRET_KEY }}
+          
+          # Non-sensitive variables from vars
+          APP_ENV: ${{ vars.APP_ENV }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          TIMEZONE: ${{ vars.TIMEZONE }}
         run: |
           echo "Environment variables are set for deployment."
-     
+      
+      - name: Print variables for verification
+        run: |
+          # Print non-sensitive vars
+          echo "APP_ENV: $APP_ENV"
+          echo "LOG_LEVEL: $LOG_LEVEL"
+          echo "TIMEZONE: $TIMEZONE"
+          
+          # Print sensitive vars (masked for security)
+          echo "DB_USERNAME: ****"
+          echo "DB_PASSWORD: ****"
+          echo "ML_API_KEY: ****"
+          echo "EMAIL_API_KEY: ****"
+          echo "ADMIN_SECRET_KEY: ****"
+      
       # Add deployment steps here, accessing sensitive data as needed
