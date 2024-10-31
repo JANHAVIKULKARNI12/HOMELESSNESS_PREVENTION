@@ -36,7 +36,7 @@ jobs:
           echo "TIMEZONE: $TIMEZONE"
           
           # Print sensitive vars (masked for security)
-          echo "DB_USERNAME: ****"
+          echo "DB_USERNAME: $DB_USERNAME"
           echo "DB_PASSWORD: ****"
           echo "ML_API_KEY: ****"
           echo "EMAIL_API_KEY: ****"
