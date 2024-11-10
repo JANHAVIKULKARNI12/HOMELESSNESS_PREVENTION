@@ -22,7 +22,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 # Load homeless model
-model = joblib.load(r'C:\Users\Dell\Desktop\HOMELESSNESS_PREVENTION\final model after authentication\homeless_model.pkl')
+model = joblib.load('homeless_model.pkl')
 
 # User model
 class User(db.Model):
