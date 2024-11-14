@@ -22,7 +22,7 @@ jobs:
 #    - name: Install dependencies
 #      run: |
 #        pip install -r requirements.txt
-#        pip install pylint
+        pip install pylint
 
     - name: Verify pylint installation
       run: pylint --version
