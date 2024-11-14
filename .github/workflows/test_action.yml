@@ -26,7 +26,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint  "final model after authentication/app.py" "chatbot/app.py"  # Replace with actual files or directories to lint
+          pylint  "final model after authentication/app.py" "chatbot_files/app.py"  # Replace with actual files or directories to lint
 
       - name: Set up environment variables
         env:
