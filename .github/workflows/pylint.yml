@@ -24,7 +24,9 @@ jobs:
 #        pip install -r requirements.txt
 #        pip install pylint
 
-# Run pylint on specific directories and files
+    - name: Verify pylint installation
+      run: pylint --version
+
     - name: Run pylint
       run: |
         pylint app.py models/*.py forms.py \
