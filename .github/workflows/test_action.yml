@@ -25,8 +25,8 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint your_python_files_or_dirs  # Replace with actual files or directories
-          
+          pylint app.py chatbot.py  # Replace with actual files or directories to lint
+
       - name: Set up environment variables
         env:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
