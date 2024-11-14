@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - #25_add_pylint
 
 jobs:
   deploy:
