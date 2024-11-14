@@ -28,5 +28,7 @@ jobs:
 
     - name: Run pylint
       run: |
-        pylint app.py models/*.py forms.py \
+        pylint app.py
+        pylint models/*.py
+        pylint forms.py \
           --output-format=colorized --fail-under=8
