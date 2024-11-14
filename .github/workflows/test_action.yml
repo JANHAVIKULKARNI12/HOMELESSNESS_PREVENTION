@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - '#25_add_pylint'
 
 jobs:
   deploy:
@@ -12,6 +13,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'  # Specify the Python version you're using
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pylint  # Install pylint
+
+      - name: Run pylint
+        run: |
+          pylint  "final model after authentication/app.py" "chatbot_files/app.py"  # Replace with actual files or directories to lint
 
       - name: Set up environment variables
         env:
