@@ -13,6 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'  # Specify the Python version you're using
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pylint  # Install pylint
+
+      - name: Run pylint
+        run: |
+          pylint your_python_files_or_dirs  # Replace with actual files or directories
+          
       - name: Set up environment variables
         env:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
