@@ -28,5 +28,5 @@ jobs:
 
     - name: Run pylint
       run: |
-        pylint app.py models/*.py forms.py \
+        pylint app.py $(find models -name "*.py") forms.py \
           --output-format=colorized --fail-under=8
