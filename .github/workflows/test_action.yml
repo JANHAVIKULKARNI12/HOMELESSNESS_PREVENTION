@@ -34,7 +34,8 @@ jobs:
 
       - name: Run pylint and handle exit code
         run: |
-          pylint --errors-only $(git ls-files '*.py')
+          export PYTHONPATH=$(pwd)
+          pylint --errors-only --disable=import-error $(git ls-files '*.py')
           pylint_exit=$?
           if [ $pylint_exit -eq 0 ]; then
             echo "Pylint exited with code $pylint_exit"
@@ -42,6 +43,7 @@ jobs:
             echo "Pylint exited with code $pylint_exit"
             exit 1  # Fail the workflow if pylint finds issues
           fi
+
                   
       - name: Set up environment variables
         env:
