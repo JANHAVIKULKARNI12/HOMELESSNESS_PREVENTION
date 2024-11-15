@@ -24,9 +24,17 @@ jobs:
           pip install -r requirements.txt
           pip install pylint  # Install pylint
 
-      - name: Run pylint
+      - name: Run pylint and handle exit code
         run: |
-          pylint  "final model after authentication/app.py" "chatbot_files/app.py"  # Replace with actual files or directories to lint
+          # Run pylint on Python files and check for errors
+          pylint --errors-only  *.py $(git ls-files '*.py')
+          pylint_exit=$?
+          if [ $pylint_exit -eq 0 ]; then
+            echo "Pylint exited with code $pylint_exit"
+          else
+            echo "Pylint exited with code $pylint_exit"
+            exit 1  # Fail the workflow if pylint finds issues
+          fi
 
       - name: Set up environment variables
         env:
