@@ -4,7 +4,7 @@ import openai
 app = Flask(__name__)
 
 # Set the OpenAI API key directly (replace with your actual key for testing)
-openai.api_key = "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"
+openai.api_key = " "
 
 # Helper function to communicate with OpenAI
 def generate_response(user_message):
