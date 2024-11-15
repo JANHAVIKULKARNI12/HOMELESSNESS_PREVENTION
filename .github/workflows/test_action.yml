@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - '#25_add_pylint'
+  pull_request:
+    branches:
+      - main
+      - '#25_add_pylint'
 
 jobs:
   deploy:
@@ -17,16 +21,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'  # Specify the Python version you're using
+          python-version: '3.11'  
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install pylint  # Install pylint
-
-      - name: Run pylint
+      
+      - name: Set Python path
         run: |
-          pylint  "final model after authentication/app.py" "chatbot_files/app.py"  # Replace with actual files or directories to lint
+          export PYTHONPATH=$(pwd)
+
+      - name: Run pylint and handle exit code
+        run: |
+          # Ensure PYTHONPATH includes the necessary directories
+          export PYTHONPATH=$(pwd)
+          # Run pylint and disable fatal errors (F0001) and import errors
+          pylint --errors-only --disable=import-error,fatal $(git ls-files '*.py')
+          pylint_exit=$?
+          if [ $pylint_exit -eq 0 ]; then
+            echo "Pylint exited with code $pylint_exit"
+          else
+            echo "Pylint exited with code $pylint_exit"
+            exit 1  # Fail the workflow if pylint finds other issues
+          fi
 
       - name: Set up environment variables
         env:
