@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace with a secure key
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:your_password@localhost/homeless_prevention'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless_prevention'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Flask-Mail configuration

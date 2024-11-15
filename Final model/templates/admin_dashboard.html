@@ -48,7 +48,7 @@
             {% if is_superadmin %}
             <td>
                 {% if not person.homeless_status %}
-                    <form action="{{ url_for('authorize_homeless', person_id=person.id) }}" method="post">
+                    <form action="{{ url_for('authorize_person', person_id=person.id) }}" method="post">
                         <button type="submit">Authorize</button>
                     </form>
                 {% else %}
