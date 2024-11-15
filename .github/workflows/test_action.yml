@@ -1,0 +1,78 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main
+      - '#25_add_pylint'
+  pull_request:
+    branches:
+      - main
+      - '#25_add_pylint'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'  
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pylint  # Install pylint
+      
+      - name: Set Python path
+        run: |
+          export PYTHONPATH=$(pwd)
+
+      - name: Run pylint and handle exit code
+        run: |
+          # Ensure PYTHONPATH includes the necessary directories
+          export PYTHONPATH=$(pwd)
+          # Run pylint and disable fatal errors (F0001) and import errors
+          pylint --errors-only --disable=import-error,fatal $(git ls-files '*.py')
+          pylint_exit=$?
+          if [ $pylint_exit -eq 0 ]; then
+            echo "Pylint exited with code $pylint_exit"
+          else
+            echo "Pylint exited with code $pylint_exit"
+            exit 1  # Fail the workflow if pylint finds other issues
+          fi
+
+      - name: Set up environment variables
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          ML_API_KEY: ${{ secrets.ML_API_KEY }}
+          EMAIL_API_KEY: ${{ secrets.EMAIL_API_KEY }}
+          ADMIN_SECRET_KEY: ${{ vars.ADMIN_SECRET_KEY }}
+          
+          # Non-sensitive variables from vars
+          APP_ENV: ${{ vars.APP_ENV }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          TIMEZONE: ${{ vars.TIMEZONE }}
+        run: |
+          echo "Environment variables are set for deployment."
+      
+      - name: Print variables for verification
+        run: |
+          # Print non-sensitive vars
+          echo "APP_ENV: $APP_ENV"
+          echo "LOG_LEVEL: $LOG_LEVEL"
+          echo "TIMEZONE: $TIMEZONE"
+          
+          # Print sensitive vars (masked for security)
+          echo "DB_USERNAME: $DB_USERNAME"
+          echo "DB_PASSWORD: ****"
+          echo "ML_API_KEY: ****"
+          echo "EMAIL_API_KEY: ****"
+          echo "ADMIN_SECRET_KEY: ****"
+      
+      # Add deployment steps here, accessing sensitive data as needed

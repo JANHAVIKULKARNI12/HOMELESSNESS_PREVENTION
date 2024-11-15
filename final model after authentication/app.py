@@ -6,7 +6,12 @@ import joblib
 
 app = Flask(__name__)
 app.secret_key = 'd2b1e5a836ef4259b707587f5a2b1ff23f38e7bb34b25e7b67c5a758e345e3b5'  # Replace with a secure key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+# Configure MySQL Database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless_prevention'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Optional: To suppress a warning
+
+# Configure Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -25,6 +30,12 @@ class User(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     is_verified = db.Column(db.Boolean, default=False)
+
+# Route to view all users
+@app.route('/users', methods=['GET'])
+def users():
+    all_users = User.query.all()  # Query to fetch all users
+    return render_template('users.html', users=all_users)
 
 # Route for the root URL to redirect to the login page
 @app.route('/')
@@ -90,14 +101,18 @@ def verify():
         entered_otp = request.form['otp']
         email = session.get('email')
         otp = session.get('otp')
+        
+        print(f"Entered OTP: {entered_otp}, Expected OTP: {otp}")  # Debugging line
+        
         if otp and int(entered_otp) == otp:
             # Mark user as verified
             user = User.query.filter_by(email=email).first()
             user.is_verified = True
             db.session.commit()
             
+            print(f"User {email} verified")  # Debugging line
             flash('Email verified successfully! You can now log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('login'))  # Redirect to the login page after verification
         else:
             flash('Invalid OTP. Please try again.', 'danger')
             return redirect(url_for('verify'))
@@ -143,5 +158,5 @@ def prediction():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Create tables if they don't exist
     app.run(debug=True)
