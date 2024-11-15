@@ -34,16 +34,66 @@ jobs:
       - name: Send success email notification
         if: success()  # Send email on success
         run: |
-          python -m smtplib -s 'smtp.gmail.com' -p 587 \
-          -f 'svreddy1003@gmail.com' -t 'svreddy1003@gmail.com' \
-          -sub 'CI/CD Workflow Success' \
-          -msg 'The CI/CD pipeline has completed successfully.'
+          python -c "
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
 
-      # Send failure email notification
-      - name: Send failure email notification
-        if: failure()  # Send email on failure
-        run: |
-          python -m smtplib -s 'smtp.gmail.com' -p 587 \
-          -f 'svreddy1003@gmail.com' -t 'svreddy1003@gmail.com' \
-          -sub 'CI/CD Workflow Failed' \
-          -msg 'The CI/CD pipeline has failed. Please check the logs for more details.'
+            def send_email(subject, body):
+                sender_email = 'svreddy1003@gmail.com'
+                receiver_email = 'svreddy1003@gmail.com'
+
+                # Set up the server
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, 'your_email_password_here')
+
+                # Create the email
+                message = MIMEMultipart()
+                message['From'] = sender_email
+                message['To'] = receiver_email
+                message['Subject'] = subject
+                message.attach(MIMEText(body, 'plain'))
+
+                # Send the email
+                server.sendmail(sender_email, receiver_email, message.as_string())
+
+                # Close the server
+                server.quit()
+
+            send_email('CI/CD Workflow Success', 'The CI/CD pipeline has completed successfully.')
+                    "
+
+                # Send failure email notification
+                - name: Send failure email notification
+                    if: failure()  # Send email on failure
+                    run: |
+                    python -c "
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+
+            def send_email(subject, body):
+                sender_email = 'svreddy1003@gmail.com'
+                receiver_email = 'svreddy1003@gmail.com'
+
+                # Set up the server
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, 'your_email_password_here')
+
+                # Create the email
+                message = MIMEMultipart()
+                message['From'] = sender_email
+                message['To'] = receiver_email
+                message['Subject'] = subject
+                message.attach(MIMEText(body, 'plain'))
+
+                # Send the email
+                server.sendmail(sender_email, receiver_email, message.as_string())
+
+                # Close the server
+                server.quit()
+
+            send_email('CI/CD Workflow Failed', 'The CI/CD pipeline has failed. Please check the logs for more details.')
+          "
