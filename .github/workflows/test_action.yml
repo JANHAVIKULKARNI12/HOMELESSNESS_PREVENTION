@@ -30,6 +30,7 @@ jobs:
 
       - name: Run pylint and handle exit code
         run: |
+          export PYTHONPATH=$(pwd)
           pylint --errors-only  *.py $(git ls-files '*.py')
           pylint_exit=$?
           if [ $pylint_exit -eq 0 ]; then

@@ -2,3 +2,8 @@ flask
 flask_sqlalchemy
 flask_mail
 joblib
+pandas
+numpy
+scipy
+matplotlib
+openai
