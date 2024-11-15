@@ -1,0 +1,49 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # Run tests
+      - name: Run Tests
+        run: |
+          pytest
+
+      # Send success email notification
+      - name: Send success email notification
+        if: success()  # Send email on success
+        run: |
+          python -m smtplib -s 'smtp.gmail.com' -p 587 \
+          -f 'svreddy1003@gmail.com' -t 'svreddy1003@gmail.com' \
+          -sub 'CI/CD Workflow Success' \
+          -msg 'The CI/CD pipeline has completed successfully.'
+
+      # Send failure email notification
+      - name: Send failure email notification
+        if: failure()  # Send email on failure
+        run: |
+          python -m smtplib -s 'smtp.gmail.com' -p 587 \
+          -f 'svreddy1003@gmail.com' -t 'svreddy1003@gmail.com' \
+          -sub 'CI/CD Workflow Failed' \
+          -msg 'The CI/CD pipeline has failed. Please check the logs for more details.'
