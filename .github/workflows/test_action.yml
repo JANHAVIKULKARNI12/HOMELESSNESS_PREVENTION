@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - '25_add_pylint'
+      - '25_add_pylint' 
   pull_request:
     branches:
       - main
-      - '25_add_pylint'
+      - '25_add_pylint'  
 
 jobs:
   deploy:
@@ -30,20 +30,20 @@ jobs:
       
       - name: Set Python path
         run: |
-          export PYTHONPATH=$(pwd)
+          export PYTHONPATH=$(pwd)  # Assuming all your modules are in the root directory
 
       - name: Run pylint and handle exit code
         run: |
-        # Ensure PYTHONPATH includes the necessary directories
-        export PYTHONPATH=$(pwd):$(pwd)/your_module_directory
-        pylint --errors-only --disable=import-error $(git ls-files '*.py')
-        pylint_exit=$?
-        if [ $pylint_exit -eq 0 ]; then
-          echo "Pylint exited with code $pylint_exit"
-        else
-          echo "Pylint exited with code $pylint_exit"
-          exit 1  
-        fi
+          # Ensure PYTHONPATH includes the necessary directories
+          export PYTHONPATH=$(pwd)
+          pylint --errors-only --disable=import-error $(git ls-files '*.py')
+          pylint_exit=$?
+          if [ $pylint_exit -eq 0 ]; then
+            echo "Pylint exited with code $pylint_exit"
+          else
+            echo "Pylint exited with code $pylint_exit"
+            exit 1  # Fail the workflow if pylint finds issues
+          fi
 
       - name: Set up environment variables
         env:
