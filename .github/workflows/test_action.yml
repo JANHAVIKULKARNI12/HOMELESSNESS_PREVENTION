@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - '#25_add_pylint'
+      
+    pull_request:
+    branches:
+      - main
+      - '#25_add_pylint'
 
 jobs:
   deploy:
@@ -17,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'  # Specify the Python version you're using
+          python-version: '3.11'  
 
       - name: Install dependencies
         run: |
@@ -26,7 +31,6 @@ jobs:
 
       - name: Run pylint and handle exit code
         run: |
-          # Run pylint on Python files and check for errors
           pylint --errors-only  *.py $(git ls-files '*.py')
           pylint_exit=$?
           if [ $pylint_exit -eq 0 ]; then
