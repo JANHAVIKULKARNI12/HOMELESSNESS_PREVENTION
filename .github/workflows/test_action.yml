@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - '#25_add_pylint'
+      - '25_add_pylint'
   pull_request:
     branches:
       - main
-      - '#25_add_pylint'
+      - '25_add_pylint'
 
 jobs:
   deploy:
