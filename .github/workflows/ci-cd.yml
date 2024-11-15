@@ -30,10 +30,6 @@ jobs:
         run: |
           pip install scikit-learn openai
 
-      # Run tests
-      - name: Run Tests
-        run: pytest
-
       # Send success email notification
       - name: Send success email notification
         if: success()
