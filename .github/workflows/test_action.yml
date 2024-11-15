@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pylint  
+          pip install pylint  # Install pylint
 
       - name: Run pylint and handle exit code
         run: |

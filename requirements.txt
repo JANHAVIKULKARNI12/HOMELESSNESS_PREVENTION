@@ -8,4 +8,6 @@ scipy
 matplotlib
 openai
 pytest
-dotenv
+python-dotenv
+setuptools
+wheel
