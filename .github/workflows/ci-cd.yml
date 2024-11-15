@@ -39,9 +39,9 @@ jobs:
             from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
 
-            sender_email = 'svreddy1003@gmail.com'
-            receiver_email = 'svreddy1003@gmail.com'
-            password = 'your_email_password_here'  # Replace with your email password or app password
+            sender_email = 'homelessprevention5@gmail.com'
+            receiver_email = 'homelessprevention5@gmail.com'
+            password = 'stir tdab vfmv clvr'  # Replace with your email password or app password
             subject = 'CI/CD Workflow Success'
             body = 'The CI/CD pipeline has completed successfully.'
 
