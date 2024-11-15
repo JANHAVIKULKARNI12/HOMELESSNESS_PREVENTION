@@ -32,6 +32,9 @@ jobs:
         run: |
           export PYTHONPATH=$(pwd)
 
+      - ⁠name: Run Tests
+        run: pytest ADMIN/test_app.py --maxfail=1 --disable-warnings
+
       - name: Run pylint and handle exit code
         run: |
           # Ensure PYTHONPATH includes the necessary directories
