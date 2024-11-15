@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import joblib
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace with a secure key
@@ -10,8 +12,16 @@ app.secret_key = 'your_secret_key_here'  # Replace with a secure key
 # Configure SQLAlchemy to use an in-memory SQLite database for testing
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
+
+# Configure Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'homelessprevention5@gmail.com'  # Set as environment variable
+app.config['MAIL_PASSWORD'] = 'stir tdab vfmv clvr'  # Set as environment variable
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+mail = Mail(app)
 
 # Load the model (assuming a model file is available)
 try:
@@ -80,7 +90,17 @@ def register():
         otp = random.randint(100000, 999999)
         session['otp'] = otp
         session['email'] = email
-        flash(f'OTP sent to {email}. Please verify your account.')
+
+        # Send OTP via email
+        try:
+            msg = Message('OTP Verification', sender='homelessprevention5@gmail.com', recipients=[email])
+            msg.body = f'Your OTP is {otp}. Please enter it to verify your account.'
+            mail.send(msg)
+            flash(f'OTP sent to {email}. Please verify your account.')
+        except Exception as e:
+            flash('Failed to send OTP. Please check your email settings.')
+            print(e)
+
         return redirect(url_for('verify'))
     
     return render_template('register.html')
@@ -111,15 +131,51 @@ def prediction():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        data = [int(request.form.get(key, 0)) for key in [
-            'age', 'gender', 'income_level', 'employment_status', 
-            'education_level', 'mental_health_status', 'substance_abuse',
-            'family_status', 'housing_history', 'disability', 'region', 'social_support'
-        ]]
+        # Collect data from the form
+        name = request.form.get('name')
+        age = int(request.form.get('age', 0))
+        gender = request.form.get('gender')
+        income_level = float(request.form.get('income_level', 0))
+        employment_status = int(request.form.get('employment_status', 0))
+        education_level = int(request.form.get('education_level', 0))
+        mental_health_status = int(request.form.get('mental_health_status', 0))
+        substance_abuse = int(request.form.get('substance_abuse', 0))
+        family_status = int(request.form.get('family_status', 0))
+        housing_history = int(request.form.get('housing_history', 0))
+        disability = int(request.form.get('disability', 0))
+        region = int(request.form.get('region', 0))
+        social_support = int(request.form.get('social_support', 0))
+
+        # Prepare data for the model
+        data = [
+            age, gender, income_level, employment_status, education_level,
+            mental_health_status, substance_abuse, family_status, housing_history,
+            disability, region, social_support
+        ]
+
+        # Run the prediction (use [0] if the model is None)
         prediction = model.predict([data]) if model else [0]
-        result = 'Homeless' if prediction[0] == 1 else 'Not Homeless'
+        homeless_status = prediction[0] == 1  # True if predicted as homeless
+
+        # Check if the person already exists in the database
+        person = Person.query.filter_by(name=name, age=age).first()
+        if person:
+            # Update existing person’s homeless status
+            person.homeless_status = homeless_status
+        else:
+            # Add a new person entry to the database
+            person = Person(
+                name=name, age=age, gender=gender, income_level=income_level,
+                homeless_status=homeless_status
+            )
+            db.session.add(person)
+        
+        db.session.commit()  # Commit changes to the database
+
+        # Display the result on the prediction page
+        result = 'Homeless' if homeless_status else 'Not Homeless'
         return render_template('prediction.html', result=result)
-    
+
     return render_template('prediction.html', result=None)
 
 # Admin Routes
@@ -146,9 +202,10 @@ def admin_dashboard():
         return redirect(url_for('admin_login'))
     
     admin_role = session.get('admin_role')
-    people = Person.query.all()
+    people = Person.query.all()  # Retrieve all people records
     admins = Admin.query.all() if admin_role == 'superadmin' else None
     return render_template('admin_dashboard.html', people=people, admins=admins, is_superadmin=(admin_role == 'superadmin'))
+
 
 @app.route('/admin/add', methods=['POST'])
 def add_admin():
@@ -182,6 +239,18 @@ def authorize_homeless(person_id):
         flash(f"Homeless status authorized for person with ID: {person_id}")
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/unauthorize/<int:person_id>', methods=['POST'])
+def unauthorize_homeless(person_id):
+    if 'admin_id' not in session or session.get('admin_role') != 'superadmin':
+        return "Unauthorized", 403
+    
+    person = Person.query.get(person_id)
+    if person:
+        person.homeless_status = False
+        db.session.commit()
+        flash(f"Homeless status unauthorized for person with ID: {person_id}")
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_id', None)
@@ -189,18 +258,33 @@ def admin_logout():
     flash("Admin logged out successfully.")
     return redirect(url_for('admin_login'))
 
-# Initialize database and create superadmin if it doesn't exist
-with app.app_context():
-    db.create_all()
-    if not Admin.query.filter_by(role='superadmin').first():
-        superadmin = Admin(
-            username='superadmin',
-            password=generate_password_hash('superpassword'),  # Replace with a secure password
-            role='superadmin'
-        )
-        db.session.add(superadmin)
-        db.session.commit()
-        print("Superadmin created successfully.")
-
 if __name__ == '__main__':
+    # Initialize database and create superadmin if it doesn't exist
+    with app.app_context():
+        db.create_all()
+        
+        # Create superadmin if it doesn't exist
+        if not Admin.query.filter_by(role='superadmin').first():
+            superadmin = Admin(
+                username='superadmin',
+                password=generate_password_hash('superpassword'),  # Replace with a secure password
+                role='superadmin'
+            )
+            db.session.add(superadmin)
+        
+        # Add sample people records for testing
+        if not Person.query.first():
+            sample_people = [
+                Person(name="John Doe", age=35, gender="Male", income_level=15000.00, homeless_status=False),
+                Person(name="Jane Smith", age=28, gender="Female", income_level=12000.00, homeless_status=False),
+                Person(name="Mike Johnson", age=40, gender="Male", income_level=10000.00, homeless_status=True),
+                Person(name="Emily Davis", age=30, gender="Female", income_level=20000.00, homeless_status=False),
+                Person(name="Chris Lee", age=45, gender="Male", income_level=8000.00, homeless_status=True)
+            ]
+            db.session.bulk_save_objects(sample_people)
+        
+        db.session.commit()
+        print("Database initialized with superadmin and sample data.")
+    
+    # Start the Flask application
     app.run(debug=True)
