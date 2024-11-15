@@ -1,4 +1,4 @@
-from testapp import db, Admin
+from HOMELESSNESS_PREVENTION.ADMIN.app2 import db, Admin
 from werkzeug.security import generate_password_hash
 
 # Create the first super admin
