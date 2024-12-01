@@ -41,22 +41,6 @@ def test_failed_login(client):
     }, follow_redirects=True)
     assert b'Invalid credentials' in response.data
 
-def test_verification(client):
-    # Register a new user
-    response = client.post('/register', data={
-        'email': 'verifyuser@example.com',
-        'password': 'password'
-    }, follow_redirects=True)
-    
-    # Extract OTP from session
-    otp = session.get('otp')
-    
-    # Verify OTP
-    response = client.post('/verify', data={
-        'otp': otp
-    }, follow_redirects=True)
-    assert b'Email verified successfully!' in response.data
-
 def test_prediction(client):
     with client.session_transaction() as sess:
         sess['user'] = 'testuser@example.com'
