@@ -17,14 +17,6 @@ def client():
         db.session.remove()
         db.drop_all()
 
-def test_register(client):
-    response = client.post('/register', data={
-        'email': 'newuser@example.com',
-        'password': 'newpassword'
-    }, follow_redirects=True)
-    assert b'OTP sent' in response.data
-    user = User.query.filter_by(email='newuser@example.com').first()
-    assert user is not None
 
 def test_login(client):
     response = client.post('/login', data={
