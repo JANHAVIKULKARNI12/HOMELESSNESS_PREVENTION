@@ -1,19 +1,59 @@
 /* General Styles */
 body {
     font-family: 'Arial', sans-serif;
-    background-image: url('../images/background.jpg');
+    background-image: url('../images/background.png');
     background-size: cover;
-    color: #333;
+    color: #ffffff;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure body takes up at least full viewport height */
 }
 
-/* Header and Footer */
-header, footer {
-    background-color: #4CAF50;
-    color: white;
+/* Main content area */
+main {
+    flex: 1; /* This pushes the footer to the bottom */
+    display: flex;
+    justify-content: flex-start; /* Align to the left */
+    align-items: flex-start; /* Align content to the top */
+    padding: 20px;
+}
+
+.container {
+    text-align: left; /* Align text and buttons to the left */
+    width: 100%; /* Ensure the container takes full width */
+    padding: 20px;
+}
+
+.container .button {
+    display: block; /* Make buttons block-level elements */
+    width: 100%; /* Make buttons take full width of the container */
+    max-width: 300px; /* Limit the width of each button */
+    margin: 10px 0; /* Space out buttons vertically */
+    padding: 15px;
+    text-align: center;
+}
+
+/* Header */
+header {
+    background-color: #000000; /* Header background color */
+    color: rgb(255, 255, 255);
     text-align: center;
     padding: 1.5rem 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Footer */
+footer {
+    background-color:#000000; /* Footer background color */
+    color: rgb(243, 247, 243);
+    text-align: center;
+    padding: 0 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: auto; /* Ensures footer stays at the bottom */
 }
 
 /* Navigation Bar */
@@ -33,7 +73,7 @@ header, footer {
 }
 
 .navbar a:hover {
-    background-color: #4CAF50;
+    background-color: #4d3d3c;
 }
 
 /* Form Styling */
@@ -56,7 +96,7 @@ form input, form select, form button {
 }
 
 form button {
-    background-color: #4CAF50;
+    background-color: #4d3d3c;
     color: white;
     border: none;
     cursor: pointer;
@@ -64,14 +104,14 @@ form button {
 }
 
 form button:hover {
-    background-color: #45a049;
+    background-color: #4d3d3c;
 }
 
 /* Buttons */
 button, .button {
     padding: 10px 20px;
     margin: 10px 0;
-    background-color: #4CAF50;
+    background-color: #4d3d3c;
     color: white;
     border: none;
     border-radius: 5px;
@@ -81,7 +121,7 @@ button, .button {
 }
 
 button:hover, .button:hover {
-    background-color: #45a049;
+    background-color: #4d3d3c;
 }
 
 /* Table Styling */
@@ -99,7 +139,7 @@ table th, table td {
 }
 
 table th {
-    background-color: #4CAF50;
+    background-color: #4d3d3c;
     color: white;
 }
 
