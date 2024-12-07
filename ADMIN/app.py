@@ -2,15 +2,12 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, emit
 import random
 import joblib
 import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace with a secure key
-socketio = SocketIO(app)
 
 # Configure SQLAlchemy to use an in-memory SQLite database for testing
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -52,15 +49,29 @@ class Admin(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False)  # 'superadmin' or 'admin'
+class Donor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    is_verified = db.Column(db.Boolean, default=False)
+
+class House(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    donor_id = db.Column(db.Integer, db.ForeignKey('donor.id'), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    state = db.Column(db.String(100), nullable=False)
+    zip_code = db.Column(db.String(10), nullable=False)
+    availability = db.Column(db.Boolean, default=True)
+    booked_by = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=True)  # Link to Person table
+
+    donor = db.relationship('Donor', backref=db.backref('houses', lazy=True))
+
 
 # Routes
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/chat')
-def chat():
-    return render_template('chat.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -136,9 +147,9 @@ def prediction():
     if 'user' not in session:
         flash('You must be logged in to access this page.')
         return redirect(url_for('login'))
-    
+
     if request.method == 'POST':
-        # Collect data from the form
+        # Collect form data
         name = request.form.get('name')
         age = int(request.form.get('age', 0))
         gender = request.form.get('gender')
@@ -176,14 +187,95 @@ def prediction():
                 homeless_status=homeless_status
             )
             db.session.add(person)
-        
+
         db.session.commit()  # Commit changes to the database
 
-        # Display the result on the prediction page
-        result = 'Homeless' if homeless_status else 'Not Homeless'
-        return render_template('prediction.html', result=result)
+        # Fetch available houses if the user is predicted as homeless
+        if homeless_status:
+            available_houses = House.query.filter_by(availability=True).all()
+            result = 'Homeless'
+            return render_template('prediction.html', result=result, houses=available_houses)
 
-    return render_template('prediction.html', result=None)
+        result = 'Not Homeless'
+        return render_template('prediction.html', result=result, houses=None)
+
+    return render_template('prediction.html', result=None, houses=None)
+
+
+@app.route('/book_house/<int:house_id>', methods=['POST'])
+def book_house(house_id):
+    if 'user' not in session:
+        flash('You must be logged in to book a house.')
+        return redirect(url_for('login'))
+
+    # Fetch the house by ID
+    house = House.query.get(house_id)
+    if house and house.availability:
+        # Get the logged-in user's email from the session
+        user_email = session['user']
+
+        # Find the corresponding Person in the database
+        person = Person.query.filter_by(name=user_email).first()
+
+        if person:
+            # Assign the house to the person and mark it as booked
+            house.availability = False
+            house.booked_by = person.id
+            db.session.commit()
+
+            # Flash success message
+            flash(f'The house at {house.address}, {house.city} has been successfully booked!')
+        else:
+            # Handle the case where the Person is not found
+            flash('Error: Your details were not found in the system. Please contact support.')
+            return redirect(url_for('prediction'))
+    else:
+        # If the house is not available
+        flash('This house is no longer available.')
+    return redirect(url_for('prediction'))
+
+
+# Donor Routes
+@app.route('/donor/register', methods=['GET', 'POST'])
+def donor_register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = generate_password_hash(request.form['password'])
+        donor = Donor(email=email, password=password, is_verified=True)
+        db.session.add(donor)
+        db.session.commit()
+        flash('Donor registered successfully!')
+        return redirect(url_for('donor_login'))
+    return render_template('donor_register.html')
+
+@app.route('/donor/login', methods=['GET', 'POST'])
+def donor_login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        donor = Donor.query.filter_by(email=email).first()
+        if donor and check_password_hash(donor.password, password):
+            session['donor_id'] = donor.id
+            return redirect(url_for('donor_dashboard'))
+        else:
+            flash('Invalid credentials.')
+    return render_template('donor_login.html')
+
+@app.route('/donor/dashboard', methods=['GET', 'POST'])
+def donor_dashboard():
+    if 'donor_id' not in session:
+        return redirect(url_for('donor_login'))
+    if request.method == 'POST':
+        address = request.form['address']
+        city = request.form['city']
+        state = request.form['state']
+        zip_code = request.form['zip_code']
+        house = House(donor_id=session['donor_id'], address=address, city=city, state=state, zip_code=zip_code)
+        db.session.add(house)
+        db.session.commit()
+        flash('House added!')
+    houses = House.query.filter_by(donor_id=session['donor_id']).all()
+    return render_template('donor_dashboard.html', houses=houses)
 
 # Admin Routes
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -265,57 +357,6 @@ def admin_logout():
     flash("Admin logged out successfully.")
     return redirect(url_for('admin_login'))
 
-user_inputs = {}
-feature_names = [
-    "age", "gender", "income_level", "employment_status", "education_level",
-    "mental_health_status", "substance_abuse", "family_status", "housing_history",
-    "disability", "region", "social_support"
-]
-
-@socketio.on('message')
-def chatbot_message(data):
-    global user_inputs
-    user_input = data['message'].strip().lower()
-
-    # Handle greetings
-    if user_input in ["hi", "hello"]:
-        emit('response', {'message': "Hello! How can I assist you today? You can type 'predict' to start the prediction process or ask me questions!"})
-    return
-
-    # Start prediction process
-    if "predict" in user_input:
-        user_inputs = {}  # Reset user inputs
-        emit('response', {'message': f"Let's start! Please provide your {feature_names[0]} (default: {default_values[feature_names[0]]})."})
-    elif len(user_inputs) < len(feature_names):
-        current_feature = feature_names[len(user_inputs)]
-        try:
-            # Parse input or use default
-            if user_input == "skip" or user_input == "":
-                user_inputs[current_feature] = default_values[current_feature]
-            else:
-                if current_feature in ["age", "income_level", "family_status"]:
-                    user_inputs[current_feature] = float(user_input)
-                elif current_feature in ["gender", "employment_status", "education_level", 
-                                          "mental_health_status", "substance_abuse", "housing_history",
-                                          "disability", "region", "social_support"]:
-                    user_inputs[current_feature] = int(user_input)
-                else:
-                    raise ValueError("Invalid input format.")
-            
-            # Move to the next feature
-            if len(user_inputs) < len(feature_names):
-                next_feature = feature_names[len(user_inputs)]
-                emit('response', {'message': f"Got it. Please provide your {next_feature} (default: {default_values[next_feature]})."})
-            else:
-                # All inputs collected, make prediction
-                features = [user_inputs.get(f, default_values[f]) for f in feature_names]
-                prediction = model.predict([features])[0]
-                emit('response', {'message': f"Prediction result: {prediction}"})
-        except ValueError:
-            emit('response', {'message': f"Invalid input for {current_feature}. Please provide it again."})
-    else:
-        emit('response', {'message': "I didn't understand that. Say 'predict' to start again or greet me with 'hi' or 'hello'!"})
-
 if __name__ == '__main__':
     # Initialize database and create superadmin if it doesn't exist
     with app.app_context():
@@ -346,4 +387,4 @@ if __name__ == '__main__':
     
     # Start the Flask application
     app.run(debug=True)
-    socketio.run(app, debug=True)
+
