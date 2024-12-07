@@ -2,12 +2,15 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, jsonify
+from flask_socketio import SocketIO, emit
 import random
 import joblib
 import os
 
 app = Flask(__name__)
 app.secret_key = 'd2b1e5a836ef4259b707587f5a2b1ff23f38e7bb34b25e7b67c5a758e345e3b5'  # Replace with a secure key
+socketio = SocketIO(app)
 
 # Configure MySQL Database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless'
@@ -72,6 +75,10 @@ class House(db.Model):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/chat')
+def chat():
+    return render_template('chat.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -357,6 +364,60 @@ def admin_logout():
     flash("Admin logged out successfully.")
     return redirect(url_for('admin_login'))
 
+
+user_inputs = {}
+feature_names = [
+    "age", "gender", "income_level", "employment_status", "education_level",
+    "mental_health_status", "substance_abuse", "family_status", "housing_history",
+    "disability", "region", "social_support"
+]
+
+@socketio.on('message')
+def chatbot_message(data):
+    global user_inputs
+    user_input = data['message'].strip().lower()
+
+    # Handle greetings
+    if user_input in ["hi", "hello"]:
+        emit('response', {'message': "Hello! How can I assist you today? You can type 'predict' to start the prediction process or ask me questions!"})
+    return
+
+    # Start prediction process
+    if "predict" in user_input:
+        user_inputs = {}  # Reset user inputs
+        emit('response', {'message': f"Let's start! Please provide your {feature_names[0]} (default: {default_values[feature_names[0]]})."})
+    elif len(user_inputs) < len(feature_names):
+        current_feature = feature_names[len(user_inputs)]
+        try:
+            # Parse input or use default
+            if user_input == "skip" or user_input == "":
+                user_inputs[current_feature] = default_values[current_feature]
+            else:
+                if current_feature in ["age", "income_level", "family_status"]:
+                    user_inputs[current_feature] = float(user_input)
+                elif current_feature in ["gender", "employment_status", "education_level", 
+                                          "mental_health_status", "substance_abuse", "housing_history",
+                                          "disability", "region", "social_support"]:
+                    user_inputs[current_feature] = int(user_input)
+                else:
+                    raise ValueError("Invalid input format.")
+            
+            # Move to the next feature
+            if len(user_inputs) < len(feature_names):
+                next_feature = feature_names[len(user_inputs)]
+                emit('response', {'message': f"Got it. Please provide your {next_feature} (default: {default_values[next_feature]})."})
+            else:
+                # All inputs collected, make prediction
+                features = [user_inputs.get(f, default_values[f]) for f in feature_names]
+                prediction = model.predict([features])[0]
+                emit('response', {'message': f"Prediction result: {prediction}"})
+        except ValueError:
+            emit('response', {'message': f"Invalid input for {current_feature}. Please provide it again."})
+    else:
+        emit('response', {'message': "I didn't understand that. Say 'predict' to start again or greet me with 'hi' or 'hello'!"})
+
+
+
 if __name__ == '__main__':
     # Initialize database and create superadmin if it doesn't exist
     with app.app_context():
@@ -387,4 +448,5 @@ if __name__ == '__main__':
     
     # Start the Flask application
     app.run(debug=True)
+    socketio.run(app, debug=True)
 
