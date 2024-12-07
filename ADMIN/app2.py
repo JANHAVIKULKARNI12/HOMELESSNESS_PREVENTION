@@ -377,46 +377,56 @@ def chatbot_message(data):
     global user_inputs
     user_input = data['message'].strip().lower()
 
+    # Features to ask the user
+    user_provided_features = ["age", "income_level", "education_level", "family_status"]
+
     # Handle greetings
     if user_input in ["hi", "hello"]:
         emit('response', {'message': "Hello! How can I assist you today? You can type 'predict' to start the prediction process or ask me questions!"})
-    return
+        return
 
     # Start prediction process
     if "predict" in user_input:
-        user_inputs = {}  # Reset user inputs
-        emit('response', {'message': f"Let's start! Please provide your {feature_names[0]} (default: {default_values[feature_names[0]]})."})
-    elif len(user_inputs) < len(feature_names):
-        current_feature = feature_names[len(user_inputs)]
+        user_inputs = {}  # Reset inputs
+        first_feature = user_provided_features[0]
+        emit('response', {'message': f"Let's start! Please provide your {first_feature} (e.g., 30 for age)."})
+        return
+
+    # Handle input for specific features
+    if len(user_inputs) < len(user_provided_features):
+        current_feature = user_provided_features[len(user_inputs)]
         try:
-            # Parse input or use default
+            # Parse user input
             if user_input == "skip" or user_input == "":
-                user_inputs[current_feature] = default_values[current_feature]
+                emit('response', {'message': f"{current_feature} is required. Please provide a valid value."})
             else:
                 if current_feature in ["age", "income_level", "family_status"]:
                     user_inputs[current_feature] = float(user_input)
-                elif current_feature in ["gender", "employment_status", "education_level", 
-                                          "mental_health_status", "substance_abuse", "housing_history",
-                                          "disability", "region", "social_support"]:
+                elif current_feature == "education_level":
                     user_inputs[current_feature] = int(user_input)
                 else:
                     raise ValueError("Invalid input format.")
-            
-            # Move to the next feature
-            if len(user_inputs) < len(feature_names):
-                next_feature = feature_names[len(user_inputs)]
-                emit('response', {'message': f"Got it. Please provide your {next_feature} (default: {default_values[next_feature]})."})
-            else:
-                # All inputs collected, make prediction
-                features = [user_inputs.get(f, default_values[f]) for f in feature_names]
-                prediction = model.predict([features])[0]
-                emit('response', {'message': f"Prediction result: {prediction}"})
+
+                # Move to the next feature or finalize input collection
+                if len(user_inputs) < len(user_provided_features):
+                    next_feature = user_provided_features[len(user_inputs)]
+                    emit('response', {'message': f"Got it. Please provide your {next_feature}."})
+                else:
+                    # Combine user-provided inputs with defaults
+                    features = []
+                    for feature in feature_names:
+                        if feature in user_inputs:
+                            features.append(user_inputs[feature])
+                        else:
+                            features.append(default_values[feature])
+
+                    # Make prediction
+                    prediction = model.predict([features])[0]
+                    emit('response', {'message': f"Prediction result: {prediction}"})
         except ValueError:
             emit('response', {'message': f"Invalid input for {current_feature}. Please provide it again."})
     else:
         emit('response', {'message': "I didn't understand that. Say 'predict' to start again or greet me with 'hi' or 'hello'!"})
-
-
 
 if __name__ == '__main__':
     # Initialize database and create superadmin if it doesn't exist
