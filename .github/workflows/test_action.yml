@@ -33,7 +33,7 @@ jobs:
           export PYTHONPATH=$(pwd)
       - name: Run Tests
         run: |
-          pytest ADMIN/test_app.py --maxfail=1 --disable-warnings
+          python -m pytest ADMIN/test_app.py --maxfail=1 --disable-warnings
 
 
       - name: Set up environment variables
