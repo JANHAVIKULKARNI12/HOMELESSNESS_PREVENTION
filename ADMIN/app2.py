@@ -7,20 +7,20 @@ import joblib
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Replace with a secure key
+app.secret_key = 'd2b1e5a836ef4259b707587f5a2b1ff23f38e7bb34b25e7b67c5a758e345e3b5'  # Replace with a secure key
 
-# Configure SQLAlchemy to use an in-memory SQLite database for testing
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Configure MySQL Database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Legend%40123@localhost/homeless'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Optional: To suppress a warning
 
 # Configure Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'homelessprevention5@gmail.com'  # Set as environment variable
-app.config['MAIL_PASSWORD'] = 'stir tdab vfmv clvr'  # Set as environment variable
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+app.config['MAIL_USERNAME'] = 'homelessprevention5@gmail.com'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'stir tdab vfmv clvr'  # Replace with your app password
+
+db = SQLAlchemy(app)
 mail = Mail(app)
 
 # Load the model (assuming a model file is available)
